@@ -1,0 +1,118 @@
+@import "tailwindcss";
+
+/* Instructs Tailwind v4 to use manual class-based dark mode toggling */
+@custom-variant dark (&:where(.dark, .dark *));
+
+
+:root {
+    /* ==========================================================================
+     LIGHT MODE: CRISP & CLEAN (NORDIC FROST)
+     ========================================================================== */
+    --bg-page: #F0F4F8;
+    /* Soft cool ice-blue white canvas */
+    --bg-surface: #FFFFFF;
+    /* Pure white floating panels */
+    --bg-surface-alt: #FAFCFF;
+    /* Light tint for tables headers, inputs */
+
+    --text-main: #1E293B;
+    /* Deep navy slate for high readability */
+    --text-muted: #64748B;
+    /* Cool steel gray for secondary metadata */
+    --text-ghost: #94A3B8;
+    /* Very light gray for utility tokens/IDs */
+
+    --brand-primary: #6366F1;
+    /* Deep Periwinkle Blue for primary actions */
+    --brand-hover: #4F46E5;
+    /* Darker indigo on mouse hover */
+
+    --border-subtle: #E2E8F0;
+    /* Soft dividing rules */
+
+    /* Semantic Status States (Calming Tones) */
+    --status-success-bg: #F0FDF4;
+    --status-success-border: #BBF7D0;
+    --status-success-text: #16A34A;
+
+    --status-pending-bg: #FFFBEB;
+    --status-pending-border: #FEF3C7;
+    --status-pending-text: #D97706;
+
+    --status-danger-bg: #FEF2F2;
+    --status-danger-border: #FEE2E2;
+    --status-danger-text: #DC2626;
+}
+
+.dark {
+    /* ==========================================================================
+     DARK MODE: MIDNIGHT FROST
+     ========================================================================== */
+    --bg-page: #0F172A;
+    /* Deep dark midnight canvas */
+    --bg-surface: #1E2640;
+    /* Sophisticated deep navy slate panels */
+    --bg-surface-alt: #111827;
+    /* Charcoal tone for headers and inputs */
+
+    --text-main: #F1F5F9;
+    /* Pale ice blue-white for crisp rendering */
+    --text-muted: #94A3B8;
+    /* Muted gray-blue for secondary metadata */
+    --text-ghost: #64748B;
+    /* Low contrast gray for IDs/disabled elements */
+
+    --brand-primary: #38BDF8;
+    /* Vibrant Sky Blue for high visibility links */
+    --brand-hover: #0EA5E9;
+    /* Deep sky blue on mouse hover */
+
+    --border-subtle: #1E293B;
+    /* Clean dark framing boundaries */
+
+    /* Semantic Status States (Dark Calming Tones) */
+    --status-success-bg: rgba(16, 185, 129, 0.1);
+    --status-success-border: rgba(16, 185, 129, 0.2);
+    --status-success-text: #34D399;
+
+    --status-pending-bg: rgba(245, 158, 11, 0.1);
+    --status-pending-border: rgba(245, 158, 11, 0.2);
+    --status-pending-text: #FBBF24;
+
+    --status-danger-bg: rgba(239, 68, 68, 0.1);
+    --status-danger-border: rgba(239, 68, 68, 0.2);
+    --status-danger-text: #F87171;
+}
+
+@theme {
+    /* ==========================================================================
+     TAILWIND V4 CLASS REGISTRATION SYSTEM
+     ========================================================================== */
+
+    --color-page: var(--bg-page);
+    --color-surface: var(--bg-surface);
+    --color-surface-alt: var(--bg-surface-alt);
+
+    --color-text-main: var(--text-main);
+    --color-text-muted: var(--text-muted);
+    --color-text-ghost: var(--text-ghost);
+
+    --color-brand: var(--brand-primary);
+    --color-brand-hover: var(--brand-hover);
+
+    --color-stroke: var(--border-subtle);
+
+    /* Status Utilities */
+    --color-success-bg: var(--status-success-bg);
+    --color-success-border: var(--status-success-border);
+    --color-success-text: var(--status-success-text);
+
+    --color-pending-bg: var(--status-pending-bg);
+    --color-pending-border: var(--status-pending-border);
+    --color-pending-text: var(--status-pending-text);
+
+    --color-danger-bg: var(--status-danger-bg);
+    --color-danger-border: var(--status-danger-border);
+    --color-danger-text: var(--status-danger-text);
+
+}
