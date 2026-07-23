@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { type Message } from "./types";
+import TokenUsageBar from "./components/TokenUsageBar";
 
 export default function Chat() {
     // --- UI States ---
@@ -14,6 +15,7 @@ export default function Chat() {
     const [sessionId, setSessionId] = useState<string | null>(null)
     const [isLoading, setIsLoading] = useState<boolean>(false)
     const [error, setError] = useState<string | null>(null)
+    const [tokensUsed, setTokensUsed] = useState<number>(0)
 
 
     // --- Refs ---
@@ -103,6 +105,7 @@ How can I help you today ?`})
         },
         onSuccess: (data) => {
             setChatMessages(prev => [...prev, { role: 'bot', text: data.response }]);
+            setTokensUsed(+data.total_tokens)
         },
         onError: (err: AxiosError) => {
             const respData = err.response?.data as { detail: string }
@@ -119,6 +122,7 @@ How can I help you today ?`})
         onSuccess: () => {
             toast.success("Successfully cleared all chat history!!")
             localStorage.removeItem("session_id")
+            setTokensUsed(0)
             setChatMessages([{
                 role: "bot", text: `
 Hi,
@@ -167,6 +171,7 @@ How can I help you today ?` }])
                     <MessageSquare size={16} className="text-brand" />
                     <h3 className="text-xs font-semibold tracking-wider text-text-main uppercase">Helpdesk</h3>
                 </div>
+                <TokenUsageBar tokenUsed={tokensUsed} />
                 <div className='flex items-center gap-4'>
                     <div className='flex gap-1 items-center border-l border-stroke pl-4'>
                         <button
