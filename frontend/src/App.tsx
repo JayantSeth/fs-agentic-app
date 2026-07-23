@@ -40,7 +40,7 @@ function App() {
           <main className="flex-1 w-full max-w-6xl mx-auto px-4 md:px-6 py-8">
             <Routes>
 
-              <Route path="/chat" element={<Chat />} />       
+              <Route path="/" element={<Chat />} />       
             </Routes>
           </main>
 

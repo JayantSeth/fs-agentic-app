@@ -19,7 +19,7 @@ export default function Navbar() {
                 {/* Navigation Links */}
                 <div className="flex gap-2">
                     <NavLink
-                        to="/chat"
+                        to="/"
                         className={({ isActive }) =>
                             `flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium uppercase tracking-wide transition-all duration-200 ${isActive ? 'bg-white dark:bg-surface text-[#6366F1] dark:text-[#38BDF8] shadow-sm ring-1 ring-black/5 dark:ring-white/5'
                                 : 'text-[#64748B] dark:text-[#94A3B8] hover:text-main dark:hover:text-[#F1F5F9] hover:bg-[#E2E8F0]/50 dark:hover:bg-surface/50'}`
