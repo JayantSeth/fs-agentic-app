@@ -1,0 +1,5 @@
+.env
+/frontend/dist
+chat_history.db
+*/__pycache__/*
+/agent/chat_history.db*

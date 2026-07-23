@@ -1,0 +1,16 @@
+ipykernel
+pandas
+ollama
+langchain
+fastapi[standard]
+nanoid
+langchain-community
+sqlalchemy
+python-dotenv
+langchain-google-genai
+uvicorn
+langchain-postgres
+psycopg[binary]
+pydantic
+langchain-openai
+langgraph-checkpoint-sqlite
