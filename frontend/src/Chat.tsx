@@ -157,7 +157,7 @@ How can I help you today ?` }])
                 <h3
                     className='text-sm font-medium text-status-danger-text'
                 >
-                    Could not Load User Details
+                    Agent is not healthy
                 </h3>
             </div>
         );
