@@ -24,19 +24,23 @@ export default function Chat() {
         (async () => {
             try {
                 setIsLoading(true)
-                let session_id = crypto.randomUUID()
+                let session_id = localStorage.getItem("session_id")
+                if (!session_id || session_id.length === 0) {
+                    session_id = crypto.randomUUID()
+                    localStorage.setItem("session_id", session_id)
+                }                
                 setSessionId(session_id)
-                const chatResp = await axios.get(`/api/v2/chat/${session_id}`)
+                const chatResp = await axios.get(`/api/chat/history/${session_id}`)
                 const chatData: Message[] = chatResp.data.messages
                 const relevantMessages: { role: string, text: string }[] = []
                 for (const msg of chatData) {
-                    if (msg.role === "user") {
+                    if (msg.type === "human") {
                         const role = "human"
                         relevantMessages.push({ role: role, text: msg.content })
-                    } else if (msg.role === "assistant" && !msg.tool_calls) {
+                    } else if (msg.type === "ai" && msg.tool_calls?.length === 0) {
                         const role = "ai"
-                        const message = JSON.parse(msg.content) as { answer: string }
-                        relevantMessages.push({ role, text: message.answer })
+                        const resp = JSON.parse(msg.content) as { message: string, tools_used: string[] }
+                        relevantMessages.push({ role, text: resp.message })
                     }
                 }
                 if (relevantMessages.length === 0) {
@@ -79,14 +83,13 @@ How can I help you today ?`})
 
     const chatMutation = useMutation({
         mutationFn: async (msg: string) => {
-            return (await axios.post(`/api/v2/chat`, {
+            return (await axios.post(`/api/chat`, {
                 message: msg,
                 session_id: sessionId,
-                user_id: 1
             })).data;
         },
         onSuccess: (data) => {
-            setChatMessages(prev => [...prev, { role: 'bot', text: data.message }]);
+            setChatMessages(prev => [...prev, { role: 'bot', text: data.response }]);
         },
         onError: (err: AxiosError) => {
             const respData = err.response?.data as { detail: string }
@@ -98,7 +101,7 @@ How can I help you today ?`})
 
     const deleteChatMutation = useMutation({
         mutationFn: async () => {
-            return (await axios.delete(`/api/v2/chat/${sessionId}`))
+            return (await axios.delete(`/api/chat/history/${sessionId}`))
         },
         onSuccess: () => {
             toast.success("Successfully cleared all chat history!!")
@@ -121,7 +124,7 @@ How can I help you today ?` }])
     };
 
     /* Error Screen */
-    if (!error) {
+    if (error) {
         console.log(`Could not load user: ${error}`)
         return (
             <div
