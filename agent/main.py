@@ -106,7 +106,7 @@ def chat_endpoint(request: ChatRequest):
             msgs = state.values.get("messages", [])
             # Input Token Estimation
             system_prompt_len = len(SYSTEM_PROMPT)
-            user_prompt_list = [msg.content for msg in msgs if msg.type == "human"]
+            user_prompt_list = [msg.content for msg in msgs if msg.type == "human" or msg.type == "tool"]
             user_prompt_len = len("".join(user_prompt_list))
             est_input_tokens = (system_prompt_len + user_prompt_len) / 4
             # Output Token Estimation
