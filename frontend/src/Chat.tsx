@@ -28,10 +28,13 @@ export default function Chat() {
                 if (!session_id || session_id.length === 0) {
                     session_id = crypto.randomUUID()
                     localStorage.setItem("session_id", session_id)
-                }                
+                }
                 setSessionId(session_id)
+                let chatData: Message[] = []
                 const chatResp = await axios.get(`/api/chat/history/${session_id}`)
-                const chatData: Message[] = chatResp.data.messages
+                if (chatResp.data.messages) {
+                    chatData = chatResp.data.messages
+                }
                 const relevantMessages: { role: string, text: string }[] = []
                 for (const msg of chatData) {
                     if (msg.type === "human") {
@@ -44,7 +47,8 @@ export default function Chat() {
                     }
                 }
                 if (relevantMessages.length === 0) {
-                    relevantMessages.push({ role: "ai", text: `
+                    relevantMessages.push({
+                        role: "ai", text: `
 Hi,
 
 How can I help you today ?`})
@@ -52,8 +56,17 @@ How can I help you today ?`})
                 setChatMessages(relevantMessages)
                 setIsLoading(false)
             } catch (err) {
-                setError("Failed to load details")
-                console.error(`${err}`)
+                if (err instanceof AxiosError) {
+                    const respData = err.response?.data as { detail: string, status_code: number }
+                    if (respData.status_code !== 404) {
+                        const errMsg = respData.detail || `${err}`
+                        console.log(`chat History error: ${errMsg}`)
+                        setError(errMsg)
+                    }
+                } else {
+                    setError(`${err}`)
+                    console.error(`${err}`)
+                }
                 setIsLoading(false)
 
             }
@@ -105,7 +118,9 @@ How can I help you today ?`})
         },
         onSuccess: () => {
             toast.success("Successfully cleared all chat history!!")
-            setChatMessages([{ role: "bot", text: `
+            localStorage.removeItem("session_id")
+            setChatMessages([{
+                role: "bot", text: `
 Hi,
 
 How can I help you today ?` }])
@@ -125,7 +140,7 @@ How can I help you today ?` }])
 
     /* Error Screen */
     if (error) {
-        console.log(`Could not load user: ${error}`)
+        console.log(`${error}`)
         return (
             <div
                 className="h-[60vh] flex flex-col items-center justify-center gap-3"
