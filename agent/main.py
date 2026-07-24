@@ -2,16 +2,9 @@ import json
 import os
 import sqlite3
 import traceback
-from typing import Dict, List, Optional
+from typing import Dict, List
 from fastapi import Depends, FastAPI, HTTPException
 from pydantic import BaseModel, Field
-# from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_openai import ChatOpenAI
-from langchain_community.chat_message_histories import SQLChatMessageHistory
-from langchain.agents import create_agent
-from langchain.agents.middleware import HumanInTheLoopMiddleware
-from langgraph.checkpoint.sqlite import SqliteSaver
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from tools import list_files_and_folders, read_file, delete_file, get_env_value
 from context import SYSTEM_PROMPT
 from dotenv import load_dotenv
@@ -40,6 +33,7 @@ class ListfilesArgs(BaseModel):
 
 class ReadFileArgs(BaseModel):
     file_path: str = Field(description="Path of the file which needs to be read")
+    number_of_lines: int = Field(description="Number of lines to be read from the file, default is -1")
 
 class DeleteFileArgs(BaseModel):
     file_path: str = Field(description="Path of the file which needs to be deleted")
@@ -100,33 +94,6 @@ class AgenticResponse(BaseModel):
 # 1. Initialize the SQLite connection
 # check_same_thread=False is safe because SqliteSaver uses internal locking
 conn = sqlite3.connect("chat_history.db", check_same_thread=False)
-# checkpointer = SqliteSaver(conn)
-
-# # ------------------------------------------------------------------
-# # 3. LangChain Agent Setup
-# # ------------------------------------------------------------------
-# # llm = ChatGoogleGenerativeAI(model="gemini-3.1-flash-lite", temperature=0.0)
-# llm = ChatOpenAI(model="gpt-5.4-mini", temperature=0.0)
-# agent = create_agent(
-#     model=llm,
-#     tools=available_tools,
-#     checkpointer=checkpointer,
-#     system_prompt=SYSTEM_PROMPT,
-#     middleware=[ 
-#         HumanInTheLoopMiddleware(
-#             interrupt_on={
-#                 "list_files_and_folders": False,
-#                 "read_file": False,
-#                 "delete_file": {
-#                     "allowed_decisions": ["approve", "reject"],
-#                     "description": "File deletion requires approval"
-#                 },
-#                 "get_env_value": False,
-#             }
-#         )
-#     ],
-#     response_format=AgenticResponse  # <--- Forces agent to produce structured output
-# )
 
 #-------------------------------------------------------------
 # Message Calling Loop
@@ -175,35 +142,7 @@ def message_tool_call_loop(messages: List[Dict[str, str]], response_format) -> t
 # ------------------------------------------------------------------
 @app.post("/api/chat", response_model=ChatResponse)
 def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
-        # if not OPENAI_API_KEY:
-        #     raise HTTPException(
-        #         status_code=500, 
-        #         detail="OPENAI_API_KEY environment variable is not set."
-        #     )
-
-        # try:
-        config = { "configurable": { "thread_id": request.session_id }}
-        # Run the agent with context
-        # if request.resume_interrupt:
-        #     response = agent.invoke(
-        #         Command(
-        #             resume={"decisions": [{"type": request.resume_decision }]}
-        #         ),
-        #         config=config,
-        #         version="v2"
-        #     )
-        # else:
-        #     response = agent.invoke({
-        #         "messages": [
-        #             {
-        #                 "role": "user", "content": request.message
-        #             }
-        #         ]
-        #     },
-        #     config=config,
-        #     version="v2"
-        #     )
-        # state = agent.get_state(config)
+    try:
         session = db.get(ChatHistory, request.session_id)
         est_input_tokens = 0
         est_output_tokens = 0
@@ -284,8 +223,8 @@ def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
             interrupt_options=interrupt_options,
             interrupt_args=interrupt_args
         )
-    # except Exception as e:
-    #     raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/chat/history/{session_id}")
 def get_chat_history(session_id: str, db: Session = Depends(get_db)):

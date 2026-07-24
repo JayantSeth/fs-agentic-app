@@ -22,7 +22,7 @@ def list_files_and_folders(directory_path: str) -> str:
     except Exception as e:
         return str(e)
 
-def read_file(file_path: str) -> str:
+def read_file(file_path: str, number_of_lines: int = -1) -> str:
     """
     Get Content of any given file
 
@@ -33,9 +33,11 @@ def read_file(file_path: str) -> str:
     """
     try:
         with open(file_path, "r+") as f:
-            lines = f.readlines()
+            lines = f.readlines(number_of_lines)
             if len(lines) == 0:
                 return "No content found"
+            if len(lines) > 100:
+                raise "File is too large"
             return "\n".join(lines)
     except Exception as e:
         return str(e)
