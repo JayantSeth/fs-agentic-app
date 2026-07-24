@@ -44,6 +44,10 @@ export default function Chat() {
                         relevantMessages.push({ role: role, text: msg.content })
                     } else if (msg.type === "ai" && msg.tool_calls?.length === 0) {
                         const role = "ai"
+                        const token_usage = msg.response_metadata?.token_usage
+                        if (token_usage) {
+                            setTokensUsed(token_usage.total_tokens)
+                        }
                         const resp = JSON.parse(msg.content) as { message: string, tools_used: string[] }
                         relevantMessages.push({ role, text: resp.message })
                     }
