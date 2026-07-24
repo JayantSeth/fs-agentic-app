@@ -16,11 +16,10 @@ export default function Chat() {
     const [isLoading, setIsLoading] = useState<boolean>(false)
     const [error, setError] = useState<string | null>(null)
     const [tokensUsed, setTokensUsed] = useState<number>(0)
-
+    const [interruptOptions, setInterruptOptions] = useState<string[]>([])
 
     // --- Refs ---
     const chatEndRef = useRef<HTMLDivElement>(null);
-
 
     useEffect(() => {
         (async () => {
@@ -105,10 +104,19 @@ How can I help you today ?`})
             return (await axios.post(`/api/chat`, {
                 message: msg,
                 session_id: sessionId,
+                resume_interrupt: false,
+                resume_decision: ""
             })).data;
         },
         onSuccess: (data) => {
-            setChatMessages(prev => [...prev, { role: 'bot', text: data.response }]);
+            if (data.interrupt) {
+                setChatMessages(prev => [...prev,
+                { role: 'bot', text: `${data.interrupt_description}, Args: ${JSON.stringify(data.interrupt_args)}` }
+                ])
+                setInterruptOptions(data.interrupt_options)
+            } else {
+                setChatMessages(prev => [...prev, { role: 'bot', text: data.response }]);
+            }
             setTokensUsed(+data.total_tokens)
         },
         onError: (err: AxiosError) => {
@@ -118,6 +126,36 @@ How can I help you today ?`})
             setChatMessages(prev => [...prev, { role: 'bot', text: `${errMsg}` }])
         }
     });
+
+    const interruptMutation = useMutation({
+        mutationFn: async (decision: string) => {
+            return (await axios.post(`/api/chat`, {
+                message: '',
+                session_id: sessionId,
+                resume_interrupt: true,
+                resume_decision: decision
+            })).data;
+        },
+        onSuccess: (data) => {
+            setInterruptOptions([])
+            if (data.interrupt) {
+                setChatMessages(prev => [...prev,
+                { role: 'bot', text: `${data.interrupt_description}, Args: ${data.interrupt_args}` }
+                ])
+                setInterruptOptions(data.interrupt_options)
+            } else {
+                setChatMessages(prev => [...prev, { role: 'bot', text: data.response }]);
+            }
+            setTokensUsed(+data.total_tokens)
+        },
+        onError: (err: AxiosError) => {
+            setInterruptOptions([])
+            const respData = err.response?.data as { detail: string }
+            const errMsg = respData.detail || `${err}`
+            toast.error(`${errMsg}`)
+            setChatMessages(prev => [...prev, { role: 'bot', text: `${errMsg}` }])
+        }
+    })
 
     const deleteChatMutation = useMutation({
         mutationFn: async () => {
@@ -240,20 +278,39 @@ How can I help you today ?` }])
 
             {/* Send Message footer */}
             <footer className="p-4 bg-surface-alt border-t border-stroke">
-                <form onSubmit={handleSendMessage} className="flex gap-2">
-                    <input
-                        value={chatInput}
-                        onChange={(e) => setChatInput(e.target.value)}
-                        placeholder="Query protocol..."
-                        className="flex-1 bg-surface border border-stroke rounded-xl px-4 py-2.5 text-sm text-text-main placeholder-text-ghost focus:border-brand focus:ring-1 focus:ring-brand outline-none transitiona-all"
-                    />
-                    <button
-                        type="submit"
-                        className="bg-brand hover:bg-brand-hover text-white dark:text-page px-5 rounded-xl transition-all font-semibold text-sm shadow-xs cursor-pointer active:scale-95"
-                    >
-                        Send
-                    </button>
-                </form>
+                {interruptOptions.length === 0
+                    ? (
+                        <>
+                            <form onSubmit={handleSendMessage} className="flex gap-2">
+                                <input
+                                    value={chatInput}
+                                    onChange={(e) => setChatInput(e.target.value)}
+                                    placeholder="Query protocol..."
+                                    className="flex-1 bg-surface border border-stroke rounded-xl px-4 py-2.5 text-sm text-text-main placeholder-text-ghost focus:border-brand focus:ring-1 focus:ring-brand outline-none transitiona-all"
+                                />
+                                <button
+                                    type="submit"
+                                    className="bg-brand hover:bg-brand-hover text-white dark:text-page px-5 rounded-xl transition-all font-semibold text-sm shadow-xs cursor-pointer active:scale-95"
+                                >
+                                    Send
+                                </button>
+                            </form>
+                        </>
+                    )
+                    : (
+                        <div className="flex gap-2 items-center justify-center">
+                            {interruptOptions.map(decision => (
+                                <button
+                                    type="button"
+                                    onClick={() => interruptMutation.mutate(decision)}
+                                    className="bg-brand hover:bg-brand-hover text-white dark:text-page px-5 rounded-xl transition-all font-semibold text-sm shadow-xs cursor-pointer active:scale-95"
+                                >
+                                    {decision}
+                                </button>
+                            ))}
+                        </div>
+                    )
+                }
             </footer>
 
         </section>
