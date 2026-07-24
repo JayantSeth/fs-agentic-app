@@ -1,8 +1,5 @@
 import os
 
-from langchain_core.tools import tool
-
-@tool
 def list_files_and_folders(directory_path: str) -> str:
     """
     Get list of files and folders with size information in a given directory
@@ -25,7 +22,6 @@ def list_files_and_folders(directory_path: str) -> str:
     except Exception as e:
         return str(e)
 
-@tool
 def read_file(file_path: str) -> str:
     """
     Get Content of any given file
@@ -44,7 +40,6 @@ def read_file(file_path: str) -> str:
     except Exception as e:
         return str(e)
 
-@tool
 def delete_file(file_path: str) -> str:
     """
     Delete the files from local file system
@@ -61,8 +56,6 @@ def delete_file(file_path: str) -> str:
     except Exception as e:
         return str(e)
 
-
-@tool
 def get_env_value(var_name: str) -> str:
     """
     Get the value of environment variable
